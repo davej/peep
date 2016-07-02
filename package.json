@@ -1,12 +1,12 @@
 {
-  "name": "peek",
+  "name": "peep",
   "version": "1.0.0",
   "description": "a browser with almost no UI",
   "main": "index.js",
   "scripts": {
     "start": "electron index.js",
     "test": "standard",
-    "build": "electron-packager . Peek --platform=darwin --arch=x64 --version=1.2.5 --prune --icon=Icon.icns --overwrite"
+    "build": "electron-packager . Peep --platform=darwin --arch=x64 --version=1.2.5 --prune --icon=Icon.icns --overwrite"
   },
   "keywords": [],
   "author": "",
@@ -24,8 +24,8 @@
     "electron-prebuilt": "^1.2.5",
     "standard": "^7.1.2"
   },
-  "homepage": "https://github.com/davej/peek",
+  "homepage": "https://github.com/davej/peep",
   "bugs": {
-    "url": "https://github.com/davej/peek/issues"
+    "url": "https://github.com/davej/peep/issues"
   }
 }
