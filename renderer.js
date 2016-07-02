@@ -6,14 +6,14 @@ var yo = require('yo-yo')
 var load = require('rainbow-load')
 var tld = require('tld')
 tld.defaultFile = path.join(__dirname, 'tlds.dat')
-var Menu = require('./menu.js')
+var Header = require('./header.js')
 var pkg = require('./package.json')
 
 var errPage = `file://${__dirname}/error.html`
 var newPage = `file://${__dirname}/newtab.html`
 
 module.exports = function () {
-  var menu = Menu(function onNewURL (href) {
+  function onNewURL (href) {
     var original = href
     var tab = currentTab()
     if (href.indexOf(' ') > -1) return search(original)
@@ -44,7 +44,13 @@ module.exports = function () {
       href = 'https://duckduckgo.com/?q=' + href.split(' ').join('+')
       return tab.setAttribute('src', href)
     }
-  })
+  }
+
+  var header = Header({
+    showUrl: true,
+    $: '.header',
+  }, onNewURL, currentTab)
+
   var tabs = []
   initShortcuts()
   newTab()
@@ -57,13 +63,23 @@ module.exports = function () {
   function newTab (src) {
     if (!src) src = newPage
     var tab = yo`<webview src="${src}"></webview>`
+    tab.addEventListener('load-commit', () => {
+      tab.insertCSS('html {transform: translateY(40px) !important}')
+    })
+    tab.addEventListener('page-title-updated', e => {
+      header({
+        showUrl: false,
+        title: e.title,
+        url: tab.getURL(),
+        canGoForward: tab.canGoForward(),
+        canGoBack: tab.canGoBack(),
+      })
+    })
     tabs.push(tab)
     showTab(tab)
     tab.addEventListener('did-start-loading', function () {
       var src = tab.getAttribute('src')
-      console.log('did-start-loading', src)
       if (src === errPage) return true
-      menu.input.value = src
       delete tab.__GOT_RESPONSE
       load.show()
       return true
@@ -72,7 +88,6 @@ module.exports = function () {
       var src = tab.getAttribute('src')
       console.log('did-stop-loading', src)
       if (src === errPage) return true
-      menu.input.value = src
       load.hide()
       if (tab.__LOADFAIL) {
         console.error('Error loading', src)
@@ -105,7 +120,6 @@ module.exports = function () {
     for (var i = 0; i < tabs.length; i++) {
       if (i === idx) {
         tabs[i].setAttribute('style', 'display: flex')
-        menu.input.value = tabs[i].getAttribute('src')
       } else {
         tabs[i].setAttribute('style', 'display: none')
       }
@@ -138,7 +152,7 @@ module.exports = function () {
     electron.ipcRenderer.on('appmenu', function (event, type) {
       var tab = currentTab()
       if (type === 'file:new-tab') newTab()
-      if (type === 'file:open-location') menu.toggle()
+      if (type === 'file:open-location') header({ showUrl: true })
       if (type === 'file:close-tab') closeTab(tab)
       if (type === 'view:reload') tab.reload()
       if (type === 'view:hard-reload') tab.reloadIgnoringCache()

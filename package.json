@@ -1,23 +1,19 @@
 {
-  "name": "tabby",
+  "name": "peek",
   "version": "1.0.0",
   "description": "a browser with almost no UI",
   "main": "index.js",
   "scripts": {
     "start": "electron index.js",
     "test": "standard",
-    "build": "electron-packager . Tabby --platform=darwin --arch=x64 --version=1.2.5 --prune --icon=Icon.icns"
-  },
-  "standard": {
-    "ignore": [
-      "meny.js"
-    ]
+    "build": "electron-packager . Peek --platform=darwin --arch=x64 --version=1.2.5 --prune --icon=Icon.icns --overwrite"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "csjs-inject": "^1.0.0",
+    "menubar": "^4.1.2",
     "rainbow-load": "0.0.6",
     "tld": "0.0.2",
     "vkey": "^1.0.0",
@@ -28,8 +24,8 @@
     "electron-prebuilt": "^1.2.5",
     "standard": "^7.1.2"
   },
-  "homepage": "https://github.com/maxogden/tabby",
+  "homepage": "https://github.com/davej/peek",
   "bugs": {
-    "url": "https://github.com/maxogden/tabby/issues"
+    "url": "https://github.com/davej/peek/issues"
   }
 }

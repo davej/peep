@@ -3,11 +3,58 @@
   <head>
     <style type="text/css">
       html, body, webview, .tabs { margin: 0; padding: 0; width: 100%; height: 100%; }
+      html, body { background: transparent }
+      canvas { top: 45px !important; }
+      @font-face {
+        font-family: 'Montserrat';
+        font-style: normal;
+        font-weight: 400;
+        src: local('Montserrat-Regular'), url(fonts/montserrat.woff2) format('woff2');
+        unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074, U+20AC, U+2212, U+2215, U+E0FF, U+EFFD, U+F000;
+      }
+      .window {
+        position: absolute;
+        width: 400px;
+        background: transparent;
+        overflow: hidden;
+        line-height: normal;
+        font-size: 12px;
+        transform: translateY(5px);
+        background: white;
+        -webkit-clip-path: url(#svgPath);
+        border-bottom-left-radius: 6px;
+        border-bottom-right-radius: 6px;
+        height: calc(100vh - 5px);
+      }
+      .innerWindow {
+        width: 400px;
+        overflow: hidden;
+        position: relative;
+        border-radius: 6px;
+        -webkit-clip-path: url(#svgPath);
+        background: white;
+        height: 100%;
+      }
     </style>
   </head>
   <body>
-    <div class="menu"></div>
-    <div class="tabs"></div>
+    <div style="width:0; height:0">
+      <svg width="0" height="0" viewBox="0 0 400 1009">
+        <defs>
+          <clipPath id="svgPath" stroke="none" stroke-width="0" fill="none" fill-rule="evenodd">
+            <path d="M0,14.9989679 C0,11.6858294 2.68683214,9 6.00421362,9 L393.995786,9 C397.311822,9 400,11.693953 400,14.9989679 L400,1009 L0,1009 L0,14.9989679 Z M210.916667,8.97717969 L203.057081,1.43197749 C201.0669,-0.478596584 197.847119,-0.47605465 195.859586,1.43197749 L188,8.97717969 L210.916667,8.97717969 Z" id="Triangle-2-Copy-2" fill="#D8D8D8" sketch:type="MSShapeGroup"></path>
+          </clipPath>
+        </defs>
+      </svg>
+    </div>
+
+    <div class="window">
+      <div class="innerWindow">
+        <div class="menu"></div>
+        <div class="header"></div>
+        <div class="tabs"></div>
+      </div>
+    </div>
     <script type="text/javascript">
       require('./renderer.js')()
     </script>

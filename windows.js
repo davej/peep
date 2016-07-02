@@ -16,7 +16,7 @@ function create () {
   var win = new electron.BrowserWindow({
     width: size.width,
     height: size.height,
-    title: 'Tabby'
+    title: 'Peek'
   })
   win.loadURL(path.join('file://', __dirname, 'index.html'))
   win.on('closed', function () { destroy(win) })
