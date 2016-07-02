@@ -4,4 +4,4 @@
 
 Download it [here](https://github.com/davej/peek/releases).
 
-![Peek Screenshot](/screenshots/1.png?raw=true)
+![Peek Screenshot](/screenshots/1.png?raw=true){:height="637px" width="488px"}
