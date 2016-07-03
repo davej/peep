@@ -30,3 +30,11 @@ mb.on('ready', function ready () {
     callback({ cancel: false, requestHeaders: details.requestHeaders })
   })
 })
+
+mb.on('show', () => {
+  mb.tray.setImage(path.join(__dirname, 'tray-icon', 'ActiveIconTemplate.png'))
+})
+
+mb.on('hide', () => {
+  mb.tray.setImage(path.join(__dirname, 'tray-icon', 'IconTemplate.png'))
+})
