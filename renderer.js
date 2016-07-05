@@ -4,6 +4,7 @@ var path = require('path')
 var electron = require('electron')
 var yo = require('yo-yo')
 var load = require('rainbow-load')
+var { shell } = electron;
 var tld = require('tld')
 tld.defaultFile = path.join(__dirname, 'tlds.dat')
 var Header = require('./header.js')
@@ -70,9 +71,6 @@ module.exports = function () {
       header({
         showUrl: false,
         title: e.title,
-        url: tab.getURL(),
-        canGoForward: tab.canGoForward(),
-        canGoBack: tab.canGoBack(),
       })
     })
     tabs.push(tab)
@@ -103,12 +101,20 @@ module.exports = function () {
       tab.__LOADFAIL = false
     })
 
+    tab.addEventListener('new-window', (e) => {
+      const protocol = url.parse(e.url).protocol;
+      if (protocol === 'http:' || protocol === 'https:') {
+        shell.openExternal(e.url);
+      }
+    });
+
     var content = document.querySelector('.tabs')
     content.appendChild(tab)
     electron.ipcRenderer.send('tab-change', tabs.length)
   }
 
   function currentTab () {
+    if (!tabs) return {};
     for (var i = 0; i < tabs.length; i++) {
       if (tabs[i].getAttribute('style').match('flex')) return tabs[i]
     }

@@ -1,6 +1,8 @@
 var yo = require('yo-yo')
 var csjs = require('csjs-inject')
 var vkey = require('vkey')
+var { remote, app, ipcRenderer } = require('electron');
+var { Menu, MenuItem } = remote;
 
 
 var styles = csjs`.mainHeader {
@@ -50,7 +52,7 @@ var styles = csjs`.mainHeader {
   padding: 1px 1%;
 }
 
-.back, .forward, .reload {
+.back, .forward, .reload, .menu {
   position: absolute;
   top: 16px;
   font-size: 17px;
@@ -67,8 +69,13 @@ var styles = csjs`.mainHeader {
 }
 
 .reload {
-  top: 14px;
-  right: 12px
+  top: 13px;
+  right: 32px
+}
+
+.menu {
+  top: 12px;
+  right: 11px
 }
 
 .active {
@@ -80,18 +87,48 @@ var styles = csjs`.mainHeader {
   font-weight: bold;
 }`
 
+var reloadExternalFn
+
+const menu = new Menu();
+menu.append(new MenuItem({
+  label: 'Request Desktop Site',
+  type: 'checkbox',
+  checked: false,
+  click: menuItem => {
+    ipcRenderer.send(`setUA:${menuItem.checked ? 'desktop' : 'mobile' }`)
+    setTimeout(() => reloadExternalFn(), 300)
+  }
+}));
+menu.append(new MenuItem({
+  label: 'Always On Top',
+  type: 'checkbox',
+  checked: false,
+  click: menuItem =>
+    ipcRenderer.send(`setAlwaysOnTop:${new Boolean(menuItem.checked)}`)
+}));
+menu.append(new MenuItem({
+  type: 'separator'
+}));
+menu.append(new MenuItem({
+  label: 'Quit',
+  type: 'normal',
+  role: 'quit',
+  click: () => app.quit()
+}));
+
 var lastOptions = {}
 module.exports = function Header(options, changeUrlCallback, currentTab) {
   function render(options) {
     options = Object.assign({}, lastOptions, options)
     lastOptions = options
-    var { title, showUrl, url, canGoBack, canGoForward } = options
+    var { title, showUrl } = options
+    var tab = currentTab ? currentTab() : {};
 
-    var input = yo`<input class="${styles.input}" onkeydown=${onkeydown} value=${url || ''}></input>`
+    var input = yo`<input class="${styles.input}" onkeydown=${onkeydown} value=${tab.url || ''}></input>`
     var header = yo`<div class="${styles.mainHeader}">
       <div class="${styles.innerHeader}">
-        <div onclick=${goBack} class="${styles.back} ${canGoBack ? styles.active : ''}">˂</div>
-        <div onclick=${goForward} class="${styles.forward} ${canGoForward ? styles.active : ''}">˃</div>
+        <div onclick=${goBack} class="${styles.back} ${tab.canGoBack ? styles.active : ''}">˂</div>
+        <div onclick=${goForward} class="${styles.forward} ${tab.canGoForward ? styles.active : ''}">˃</div>
         ${showUrl ?
           input :
           yo`<div id="pageTitle" class="${styles.title}" onclick=${showUrlInput}>
@@ -99,6 +136,7 @@ module.exports = function Header(options, changeUrlCallback, currentTab) {
           </div>`
         }
         <div onclick=${reload} class="${styles.reload} ${styles.active}">↻</div>
+        <div onclick=${openMenu} class="${styles.menu} ${styles.active}">☰</div>
       </div>
     </div>`
     if (showUrl) {
@@ -125,6 +163,7 @@ module.exports = function Header(options, changeUrlCallback, currentTab) {
   function reload() {
     currentTab().reload();
   }
+  reloadExternalFn = reload
 
   function showUrlInput() {
     yo.update(rendered, render({ showUrl: true }))
@@ -138,6 +177,10 @@ module.exports = function Header(options, changeUrlCallback, currentTab) {
     if (vkey[e.keyCode] === '<escape>') {
       yo.update(rendered, render({ showUrl: false }))
     }
+  }
+
+  function openMenu() {
+    menu.popup(remote.getCurrentWindow())
   }
 
   return options => yo.update(rendered, render(options))
