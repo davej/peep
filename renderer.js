@@ -4,7 +4,7 @@ var path = require('path')
 var electron = require('electron')
 var yo = require('yo-yo')
 var load = require('rainbow-load')
-var { shell } = electron;
+var {shell, ipcRenderer} = electron;
 var tld = require('tld')
 tld.defaultFile = path.join(__dirname, 'tlds.dat')
 var Header = require('./header.js')
@@ -70,8 +70,11 @@ module.exports = function () {
     tab.addEventListener('page-title-updated', e => {
       header({
         showUrl: false,
-        title: e.title,
+        title: e.title
       })
+    })
+    tab.addEventListener('page-favicon-updated', e => {
+      ipcRenderer.send('setIconToFaviconUrl', e.favicons)
     })
     tabs.push(tab)
     showTab(tab)
@@ -102,11 +105,11 @@ module.exports = function () {
     })
 
     tab.addEventListener('new-window', (e) => {
-      const protocol = url.parse(e.url).protocol;
+      const protocol = url.parse(e.url).protocol
       if (protocol === 'http:' || protocol === 'https:') {
-        shell.openExternal(e.url);
+        shell.openExternal(e.url)
       }
-    });
+    })
 
     var content = document.querySelector('.tabs')
     content.appendChild(tab)
@@ -114,7 +117,7 @@ module.exports = function () {
   }
 
   function currentTab () {
-    if (!tabs) return {};
+    if (!tabs) return {}
     for (var i = 0; i < tabs.length; i++) {
       if (tabs[i].getAttribute('style').match('flex')) return tabs[i]
     }

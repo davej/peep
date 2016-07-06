@@ -1,8 +1,8 @@
 var yo = require('yo-yo')
 var csjs = require('csjs-inject')
 var vkey = require('vkey')
-var { remote, app, ipcRenderer } = require('electron');
-var { Menu, MenuItem } = remote;
+var { remote, app, ipcRenderer } = require('electron')
+var { Menu, MenuItem } = remote
 
 
 var styles = csjs`.mainHeader {
@@ -29,14 +29,18 @@ var styles = csjs`.mainHeader {
   top: 17px;
   left: 15%;
   text-align: center;
-  white-space: nowrap;
   text-overflow: ellipsis;
+  white-space: nowrap;
   overflow: hidden;
 }
 
 .title:hover span {
-  border-bottom: 1px #aaa dashed;
   display: inline-block;
+  border-bottom: 1px #aaa dashed;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  overflow: hidden;
+  max-width: 100%;
 }
 
 .input {
@@ -89,49 +93,56 @@ var styles = csjs`.mainHeader {
 
 var reloadExternalFn
 
-const menu = new Menu();
+const menu = new Menu()
 menu.append(new MenuItem({
   label: 'Request Desktop Site',
   type: 'checkbox',
   checked: false,
   click: menuItem => {
-    ipcRenderer.send(`setUA:${menuItem.checked ? 'desktop' : 'mobile' }`)
+    ipcRenderer.send(`setUA:${menuItem.checked ? 'desktop' : 'mobile'}`)
     setTimeout(() => reloadExternalFn(), 300)
   }
-}));
+}))
 menu.append(new MenuItem({
   label: 'Always On Top',
   type: 'checkbox',
   checked: false,
   click: menuItem =>
-    ipcRenderer.send(`setAlwaysOnTop:${new Boolean(menuItem.checked)}`)
-}));
+    ipcRenderer.send(`setAlwaysOnTop:${Boolean(menuItem.checked)}`)
+}))
+menu.append(new MenuItem({
+  label: 'Use Site Icon on Menubar',
+  type: 'checkbox',
+  checked: false,
+  click: menuItem =>
+    ipcRenderer.send(`useSiteIconAsAppIcon:${Boolean(menuItem.checked)}`)
+}))
 menu.append(new MenuItem({
   type: 'separator'
-}));
+}))
 menu.append(new MenuItem({
   label: 'Quit',
   type: 'normal',
   role: 'quit',
   click: () => app.quit()
-}));
+}))
 
 var lastOptions = {}
-module.exports = function Header(options, changeUrlCallback, currentTab) {
-  function render(options) {
+module.exports = function Header (options, changeUrlCallback, currentTab) {
+  function render (options) {
     options = Object.assign({}, lastOptions, options)
     lastOptions = options
     var { title, showUrl } = options
-    var tab = currentTab ? currentTab() : {};
+    var tab = currentTab ? currentTab() : {}
 
-    var input = yo`<input class="${styles.input}" onkeydown=${onkeydown} value=${tab.url || ''}></input>`
+    var input = yo`<input class="${styles.input}" onkeydown=${onkeydown} value=${tab.getURL ? tab.getURL() : ''}></input>`
     var header = yo`<div class="${styles.mainHeader}">
       <div class="${styles.innerHeader}">
         <div onclick=${goBack} class="${styles.back} ${tab.canGoBack ? styles.active : ''}">˂</div>
         <div onclick=${goForward} class="${styles.forward} ${tab.canGoForward ? styles.active : ''}">˃</div>
-        ${showUrl ?
-          input :
-          yo`<div id="pageTitle" class="${styles.title}" onclick=${showUrlInput}>
+        ${showUrl
+          ? input
+          : yo`<div id="pageTitle" class="${styles.title}" onclick=${showUrlInput}>
             <span>${title}</span>
           </div>`
         }
@@ -148,39 +159,20 @@ module.exports = function Header(options, changeUrlCallback, currentTab) {
     return header
   }
 
-
-  var rendered = render(options);
+  var rendered = render(options)
   document.querySelector(options.$).appendChild(rendered)
 
-  function goBack() {
-    currentTab().goBack();
-  }
-
-  function goForward() {
-    currentTab().goForward();
-  }
-
-  function reload() {
-    currentTab().reload();
-  }
+  function goBack () { currentTab().goBack() }
+  function goForward () { currentTab().goForward() }
+  function reload () { currentTab().reload() }
   reloadExternalFn = reload
 
-  function showUrlInput() {
-    yo.update(rendered, render({ showUrl: true }))
-  }
+  function showUrlInput () { yo.update(rendered, render({ showUrl: true })) }
+  function openMenu () { menu.popup(remote.getCurrentWindow()) }
 
   function onkeydown (e) {
-    if (vkey[e.keyCode] === '<enter>') {
-      changeUrlCallback(e.currentTarget.value)
-    }
-
-    if (vkey[e.keyCode] === '<escape>') {
-      yo.update(rendered, render({ showUrl: false }))
-    }
-  }
-
-  function openMenu() {
-    menu.popup(remote.getCurrentWindow())
+    if (vkey[e.keyCode] === '<enter>') changeUrlCallback(e.currentTarget.value)
+    if (vkey[e.keyCode] === '<escape>') yo.update(rendered, render({ showUrl: false }))
   }
 
   return options => yo.update(rendered, render(options))

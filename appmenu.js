@@ -1,7 +1,6 @@
 var electron = require('electron')
 var Menu = electron.Menu
 var app = electron.app
-var windows = require('./windows')
 
 var template = [
   {

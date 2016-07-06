@@ -1,9 +1,9 @@
 var electron = require('electron')
-var { ipcMain } = electron
-var windows = require('./windows.js')
+var {ipcMain, nativeImage} = electron
 var setMenu = require('./appmenu.js')
 var menubar = require('menubar')
 var path = require('path')
+var imageResize = require('electron-image-resize')
 
 var mb = menubar({
   dir: __dirname,
@@ -22,8 +22,7 @@ var mb = menubar({
 })
 global.mb = mb
 
-
-function setUA(ua) {
+function setUA (ua) {
   electron.session.defaultSession.webRequest.onBeforeSendHeaders((details, callback) => {
     details.requestHeaders['User-Agent'] = ua
     callback({ cancel: false, requestHeaders: details.requestHeaders })
@@ -38,7 +37,7 @@ var setDesktopUA = () => setUA(desktopUA)
 ipcMain.on('setUA:mobile', () => setMobileUA())
 ipcMain.on('setUA:desktop', () => setDesktopUA())
 
-function setAlwaysOnTop(bool) {
+function setAlwaysOnTop (bool) {
   mb.setOption('always-on-top', bool)
   mb.window.setAlwaysOnTop(bool)
 }
@@ -46,15 +45,58 @@ function setAlwaysOnTop(bool) {
 ipcMain.on('setAlwaysOnTop:true', () => setAlwaysOnTop(true))
 ipcMain.on('setAlwaysOnTop:false', () => setAlwaysOnTop(false))
 
+var useSiteIconAsAppIcon = false
+ipcMain.on('useSiteIconAsAppIcon:true', () => {
+  useSiteIconAsAppIcon = true
+})
+ipcMain.on('useSiteIconAsAppIcon:false', () => {
+  useSiteIconAsAppIcon = false
+  setAsActive()
+})
+
+ipcMain.on('setIconToFaviconUrl', (e, favicons) => setIconToFaviconUrl(favicons))
+
+var lastFavicon = null
+function setIconToFaviconUrl (favicons) {
+  if (!useSiteIconAsAppIcon) return
+
+  var hasValidFavicon = favicons.some(favicon => {
+    if (lastFavicon === favicon) {
+      // Same icon as last time so do nothing
+      return true
+    }
+    if (favicon.substring(0, 21) === 'data:image/png;base64' || favicon.substr(0, 4) === 'http') {
+      // Currently supports urls and data urls
+      imageResize({
+        url: favicon,
+        width: 18,
+        height: 18
+      }).then(img =>
+        mb.tray.setImage(
+          nativeImage.createFromBuffer(
+            img.toPng(),
+            electron.screen.getPrimaryDisplay().scaleFactor
+          )
+        )
+      , err => console.log(err))
+      lastFavicon = favicon
+      return true
+    }
+    return false
+  })
+  if (!hasValidFavicon) setAsActive()
+}
+
 mb.on('ready', function ready () {
   setMenu()
   setMobileUA()
 })
 
-mb.on('show', () => {
+function setAsActive () {
   mb.tray.setImage(path.join(__dirname, 'tray-icon', 'ActiveIconTemplate.png'))
-})
-
-mb.on('hide', () => {
+}
+function setAsInactive () {
   mb.tray.setImage(path.join(__dirname, 'tray-icon', 'IconTemplate.png'))
-})
+}
+mb.on('show', () => !useSiteIconAsAppIcon && setAsActive())
+mb.on('hide', () => !useSiteIconAsAppIcon && setAsInactive())
