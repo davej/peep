@@ -6,22 +6,23 @@
   "scripts": {
     "start": "electron index.js",
     "test": "standard",
-    "build": "electron-packager . Peep --platform=darwin --arch=x64 --version=1.2.5 --prune --icon=Icon.icns --overwrite"
+    "build": "electron-packager . Peep --platform=darwin --arch=x64 --version=1.2.6 --prune --icon=Icon.icns --overwrite"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "csjs-inject": "^1.0.0",
-    "menubar": "^4.1.2",
+    "electron-image-resize": "^1.2.2",
+    "menubar": "github:davej/menubar#patch-2",
     "rainbow-load": "0.0.6",
     "tld": "0.0.2",
     "vkey": "^1.0.0",
     "yo-yo": "^1.1.1"
   },
   "devDependencies": {
-    "electron-packager": "^7.1.0",
-    "electron-prebuilt": "^1.2.5",
+    "electron-packager": "^7.2.0",
+    "electron-prebuilt": "^1.2.6",
     "standard": "^7.1.2"
   },
   "homepage": "https://github.com/davej/peep",
